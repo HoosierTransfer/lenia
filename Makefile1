@@ -1,0 +1,47 @@
+# Compiler for Linux
+CC_LINUX := g++
+CFLAGS_LINUX := -std=c++11 -O2 
+LDFLAGS_LINUX := -lSDL2 -lfftw3
+
+# Compiler for Windows
+CC_WINDOWS := x86_64-w64-mingw32-g++
+CFLAGS_WINDOWS := -std=c++17 -O2 -I./libs/include -L./libs/lib -mwindows
+LDFLAGS_WINDOWS := -lSDL2 -lfftw3 -I./libs/include -L./libs/lib
+
+SRC_DIR := src
+OBJ_DIR := objs
+BIN_DIR := bin
+
+SRCS := $(wildcard $(SRC_DIR)/*.cpp)
+OBJS_LINUX := $(patsubst $(SRC_DIR)/%.cpp,$(OBJ_DIR)/linux/%.o,$(SRCS))
+OBJS_WINDOWS := $(patsubst $(SRC_DIR)/%.cpp,$(OBJ_DIR)/windows/%.o,$(SRCS))
+TARGET_LINUX := main
+TARGET_WINDOWS := app.exe
+
+# Default target
+all: $(TARGET_LINUX) $(TARGET_WINDOWS)
+
+# Linux target
+$(TARGET_LINUX): $(OBJS_LINUX)
+	$(CC_LINUX) $(CFLAGS_LINUX) $^ -o $(BIN_DIR)/$@ $(LDFLAGS_LINUX)
+
+# Windows target
+$(TARGET_WINDOWS): $(OBJS_WINDOWS)
+	$(CC_WINDOWS) $(CFLAGS_WINDOWS) $^ -o $(BIN_DIR)/$@ $(LDFLAGS_WINDOWS)
+
+# Object file rule for Linux
+$(OBJ_DIR)/linux/%.o: $(SRC_DIR)/%.cpp
+	@mkdir -p $(BIN_DIR)
+	@mkdir -p $(dir $@)
+	$(CC_LINUX) $(CFLAGS_LINUX) -c $< -o $@
+
+# Object file rule for Windows
+$(OBJ_DIR)/windows/%.o: $(SRC_DIR)/%.cpp
+	@mkdir -p $(BIN_DIR)
+	@mkdir -p $(dir $@)
+	$(CC_WINDOWS) $(CFLAGS_WINDOWS) -c $< -o $@
+
+clean:
+	rm -rf $(OBJ_DIR) $(BIN_DIR)
+
+.PHONY: all clean
